@@ -1,0 +1,140 @@
+---
+title: "Midterm Project"
+author: "Bao Hu"
+date: "2024-04-03"
+output: pdf_document
+---
+### To make Y to one dimensional variable:
+Categorize the output (Y) to 8 classes, a 8*3 matrix 
+
+### Ideas:
+- we can compare the group of people with each response outcome only
+- try different combinations to find information or pattern
+- how to differentiate different groups
+- whether gender play some role for Y
+  - construct histogram for 8 classes 
+  - Y|G = F
+  - Y|G = M
+
+
+- take out some classes that we are interested and they test one feature to see does this feature separate the chosen classes properly
+
+
+
+- group data by age, and see if 'sex' plays a role in each age group
+  - within each age group, do the graph of conditional entropy for each feature
+- histogram for y with repsect to each feature
+- diffwalk is important
+- 
+
+```{r setup, include=FALSE}
+library(dslabs)
+library(readxl)
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(lubridate)
+library (readr)
+library(ggplot2)
+library(GGally)
+library(psych)
+library(caret)
+```
+
+
+```{r}
+df <- read.csv("heart_disease_health_indicators_BRFSS2015.csv")
+
+
+df_dimensions <- dim(df)
+df_dimensions
+
+# we found that there are '2's in the Diabetes
+unique(df$Diabetes)
+unique(df$HeartDiseaseorAttack)
+unique(df$Stroke)
+
+diabetes_counts <- table(df$Diabetes)
+print(diabetes_counts)
+# there are more '0's than the sum of '1' and '2', so we merge 1 and 2 together
+df$Diabetes[df$Diabetes == '2'] <- '1'
+
+df$Y=paste(df$HeartDiseaseorAttack,df$Diabetes,df$Stroke,sep=',')
+Y_counts <- table(df$Y)
+
+print(Y_counts)
+
+names <- colnames(df)
+names
+
+tab1=xtabs(formula = ~HighChol+Y,data=df)
+print(tab1)
+
+tab2=xtabs(formula = ~HighBP+Y,data=df)
+print(tab2)
+
+tab3=xtabs(formula = ~Smoker+Y,data=df)
+print(tab3)
+
+tab4=xtabs(formula = ~HvyAlcoholConsump+Y,data=df)
+print(tab4)
+
+## group data by age and do the mutual entropy for each age group
+## so we can see the most significant feature within each age group
+
+```
+
+
+
+```{r pressure, echo=FALSE}
+
+# get name of column and find the target variables
+names <- colnames(df)
+names
+
+dia <- df["Diabetes"]
+stro <- df["Stroke"]
+heart <- df["HeartDiseaseorAttack"]
+# check if there are NULL
+any(is.na(df))
+na_count <- colSums(is.na(df))
+na_count_filtered <- na_count[na_count > 1000]
+num_elements <- length(na_count_filtered)
+num_elements
+
+
+
+
+df$Diabetes <- ifelse(df$Diabetes == 2, 1, 0)
+
+df$Y <- apply(df, 1, function(row) {
+  combined <- paste(row["Diabetes"], row["Stroke"], row["HeartDiseaseorAttack"], sep = ",")
+  
+  # Encode combinations into unique integers
+  if (combined == "0,0,0") {
+    return(1)
+  } else if (combined == "0,0,1") {
+    return(2)
+  } else if (combined == "0,1,0") {
+    return(3)
+  } else if (combined == "0,1,1") {
+    return(4)
+  } else if (combined == "1,0,0") {
+    return(5)
+  } else if (combined == "1,0,1") {
+    return(6)
+  } else if (combined == "1,1,0") {
+    return(7)
+  } else if (combined == "1,1,1") {
+    return(8)
+  } else {
+    return(NA)
+  }
+})
+
+# Convert Y column to factor if needed
+df$Y <- as.factor(df$Y)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
